@@ -4,6 +4,7 @@ import re
 import base64
 from typing import List, Dict, Any
 from openai import AsyncOpenAI
+import google.generativeai as genai
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -11,61 +12,105 @@ load_dotenv()
 class LLMService:
     def __init__(self):
         self.api_key = os.getenv("OPENROUTER_API_KEY")
-        if not self.api_key:
-            raise ValueError("OPENROUTER_API_KEY is not set in environment variables")
+        self.gemini_key = os.getenv("GEMINI_API_KEY")
+        
+        if not self.api_key and not self.gemini_key:
+            raise ValueError("Neither OPENROUTER_API_KEY nor GEMINI_API_KEY is set in environment variables")
             
         self.base_url = "https://openrouter.ai/api/v1"
         self.model = os.getenv("OPENROUTER_MODEL", "google/gemini-2.0-flash-001")
         
-        self.client = AsyncOpenAI(
-            base_url=self.base_url,
-            api_key=self.api_key,
-        )
+        # Initialize OpenRouter Client
+        if self.api_key:
+            self.client = AsyncOpenAI(
+                base_url=self.base_url,
+                api_key=self.api_key,
+            )
+        
+        # Initialize Google Gemini Client if key provided
+        if self.gemini_key:
+            genai.configure(api_key=self.gemini_key)
+            self.gemini_model = genai.GenerativeModel('gemini-1.5-flash')
 
     def _parse_json_response(self, content: str) -> Dict[str, Any]:
         """Parses JSON from LLM response, handling potential markdown wrapping."""
         try:
-            # Try direct parsing
-            return json.loads(content)
-        except json.JSONDecodeError:
-            # Try to find JSON block in markdown
-            match = re.search(r"```(?:json)?\s*(.*?)\s*```", content, re.DOTALL)
+            # Clean up the string - sometimes models return extra markdown characters
+            clean_content = content.strip()
+            if clean_content.startswith("```"):
+                # Use regex to extract JSON from markdown blocks
+                match = re.search(r"```(?:json)?\s*(.*?)\s*```", clean_content, re.DOTALL)
+                if match:
+                    clean_content = match.group(1)
+            
+            return json.loads(clean_content)
+        except Exception as e:
+            print(f"JSON Parse Error: {e}. Content: {content[:200]}")
+            # Fallback regex attempt if json.loads fails
+            match = re.search(r"\{.*\}", content, re.DOTALL)
             if match:
                 try:
-                    return json.loads(match.group(1))
-                except json.JSONDecodeError:
+                    return json.loads(match.group(0))
+                except:
                     pass
-            
-            # If all fails, raise the error
             raise ValueError(f"Failed to parse JSON from response: {content[:100]}...")
 
+    async def analyze_with_google_gemini(self, file_path: str, prompt: str) -> Dict[str, Any]:
+        """Directly uses Google Gemini API for analysis (Better for PDFs/Images)."""
+        try:
+            print(f"DEBUG: Starting Direct Google Gemini Analysis for {file_path}")
+            
+            # Load the file
+            with open(file_path, "rb") as f:
+                file_data = f.read()
+            
+            mime_type = "application/pdf" if file_path.lower().endswith(".pdf") else "image/png"
+            
+            # Prepare content
+            content = [
+                prompt,
+                {
+                    "mime_type": mime_type,
+                    "data": file_data
+                }
+            ]
+            
+            # Generate response
+            response = await self.gemini_model.generate_content_async(content)
+            
+            if not response.text:
+                raise ValueError("Google Gemini returned an empty response")
+                
+            return self._parse_json_response(response.text)
+        except Exception as e:
+            print(f"DEBUG: Google Gemini direct analysis error: {str(e)}")
+            raise e
+
     async def analyze_paper_text(self, text: str) -> Dict[str, Any]:
-        """Analyzes paper text to extract questions, marks, and topics."""
+        """Analyzes paper text using OpenRouter as fallback."""
         if not text.strip():
             raise ValueError("Empty text provided for analysis")
 
-        prompt = f"""
+        prompt = """
         Analyze the following text extracted from a past exam paper. 
         Extract the questions, their marks, and the specific topics they cover.
+        Provide a detailed solution for each question.
         Return the result in valid JSON format.
         
         Structure:
-        {{
+        {
             "questions": [
-                {{
+                {
                     "text": "question text",
                     "marks": 10,
                     "topic": "topic name",
                     "difficulty": "easy/medium/hard",
                     "solution": "step-by-step solution or answer key"
-                }}
+                }
             ],
             "subject": "subject name",
             "year": 2023
-        }}
-        
-        Text:
-        {text[:5000]}
+        }
         """
         
         try:
@@ -74,75 +119,15 @@ class LLMService:
                 model=self.model,
                 messages=[
                     {"role": "system", "content": "You are an expert exam analyzer. Always return valid JSON."},
-                    {"role": "user", "content": prompt}
+                    {"role": "user", "content": f"{prompt}\n\nText:\n{text[:10000]}"}
                 ],
                 response_format={ "type": "json_object" }
             )
             
             content = response.choices[0].message.content
-            if not content:
-                raise ValueError("OpenRouter returned an empty response")
-                
             return self._parse_json_response(content)
         except Exception as e:
             print(f"DEBUG: OpenRouter analysis error: {str(e)}")
-            raise e
-
-    async def analyze_paper_image(self, image_path: str) -> Dict[str, Any]:
-        """Analyzes an exam paper image directly using LLM Vision."""
-        try:
-            with open(image_path, "rb") as image_file:
-                base64_image = base64.b64encode(image_file.read()).decode('utf-8')
-            
-            prompt = """
-            Analyze this exam paper image. 
-            Extract the questions, their marks, and the specific topics they cover.
-            Provide a detailed solution for each question.
-            Return the result in valid JSON format.
-            
-            Structure:
-            {
-                "questions": [
-                    {
-                        "text": "question text",
-                        "marks": 10,
-                        "topic": "topic name",
-                        "difficulty": "easy/medium/hard",
-                        "solution": "step-by-step solution or answer key"
-                    }
-                ],
-                "subject": "subject name",
-                "year": 2023
-            }
-            """
-            
-            print(f"DEBUG: Sending request to OpenRouter for IMAGE analysis: {os.path.basename(image_path)}")
-            response = await self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "text", "text": prompt},
-                            {
-                                "type": "image_url",
-                                "image_url": {
-                                    "url": f"data:image/png;base64,{base64_image}"
-                                }
-                            }
-                        ]
-                    }
-                ],
-                response_format={ "type": "json_object" }
-            )
-            
-            content = response.choices[0].message.content
-            if not content:
-                raise ValueError("OpenRouter returned an empty response")
-                
-            return self._parse_json_response(content)
-        except Exception as e:
-            print(f"DEBUG: OpenRouter image analysis error: {str(e)}")
             raise e
 
     async def map_to_syllabus(self, questions: List[Dict], syllabus_text: str) -> Dict[str, Any]:

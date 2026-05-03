@@ -78,34 +78,55 @@ async def upload_paper(
     try:
         print(f"2. Starting extraction/analysis for {file.filename}")
         
-        # If it's an image, we can try direct vision analysis first or as a fallback
+        # Determine if we can use direct Google Gemini analysis (Preferred for accuracy)
+        is_pdf = file.filename.lower().endswith('.pdf')
         is_image = file.filename.lower().endswith(('.png', '.jpg', '.jpeg'))
         
-        if is_image:
+        prompt = """
+        Analyze this exam paper document. 
+        Extract the questions, their marks, and the specific topics they cover.
+        Provide a detailed solution for each question.
+        Return the result in valid JSON format.
+        
+        Structure:
+        {
+            "questions": [
+                {
+                    "text": "question text",
+                    "marks": 10,
+                    "topic": "topic name",
+                    "difficulty": "easy/medium/hard",
+                    "solution": "step-by-step solution or answer key"
+                }
+            ],
+            "subject": "subject name",
+            "year": 2023
+        }
+        """
+
+        # Step 2a: Try direct Google Gemini API if key is available (Supports PDF and Image)
+        if os.getenv("GEMINI_API_KEY") and (is_pdf or is_image):
             try:
-                # Try PDF.co first for text extraction (as requested)
-                extracted_text = await ocr.extract_with_pdf_co(file_path)
-                if extracted_text:
-                    print("2a. PDF.co text extraction successful. Sending to LLM...")
-                    analysis = await llm.analyze_paper_text(extracted_text)
+                print(f"2a. Using direct Google Gemini API for {file.filename}")
+                analysis = await llm.analyze_with_google_gemini(file_path, prompt)
             except Exception as e:
-                print(f"2b. PDF.co failed for image, falling back to Gemini Vision: {str(e)}")
-            
-            # If PDF.co failed or didn't return text, use Gemini Vision directly
-            if not analysis:
-                print("2c. Starting direct Gemini Vision analysis...")
-                analysis = await llm.analyze_paper_image(file_path)
-        else:
-            # It's a PDF
-            extracted_text = await ocr.extract_with_pdf_co(file_path)
-            if not extracted_text:
-                raise HTTPException(status_code=400, detail="Could not extract text from PDF via PDF.co")
-            
-            print("2d. PDF text extraction successful. Sending to LLM...")
-            analysis = await llm.analyze_paper_text(extracted_text)
+                print(f"2b. Direct Gemini failed, falling back to OCR path: {str(e)}")
+
+        # Step 2b: Fallback to PDF.co OCR + LLM Text Analysis
+        if not analysis:
+            print("2c. Falling back to PDF.co + Text Analysis path")
+            extracted_text = ""
+            if is_pdf or is_image:
+                extracted_text = await ocr.extract_with_pdf_co(file_path)
+            else:
+                extracted_text = ocr.extract_from_bytes(content)
+                
+            if extracted_text:
+                print("2d. Text extraction successful. Sending to LLM...")
+                analysis = await llm.analyze_paper_text(extracted_text)
             
         if not analysis:
-            raise HTTPException(status_code=400, detail="Could not analyze document. AI returned no results.")
+            raise HTTPException(status_code=400, detail="Could not analyze document. All AI paths failed.")
             
         print(f"3. Analysis successful ({len(analysis.get('questions', []))} questions found)")
     except Exception as e:

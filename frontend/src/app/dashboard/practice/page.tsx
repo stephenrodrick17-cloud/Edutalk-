@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BrainCircuit, Sparkles, ChevronRight, BookOpen, Lightbulb, CheckCircle2, Loader2, HelpCircle } from "lucide-react";
+import { BrainCircuit, Sparkles, ChevronRight, BookOpen, Lightbulb, CheckCircle2, Loader2, HelpCircle, Volume2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function PracticePage() {
@@ -36,7 +36,24 @@ export default function PracticePage() {
       hint: "Think about upper bound, lower bound, and tight bound.",
       markingScheme: "2 marks for each definition, 4 marks for examples."
     },
-    // ...
+    {
+      id: 2,
+      text: "Given a set of non-negative integers and a value sum, determine if there is a subset of the given set with sum equal to given sum.",
+      marks: 15,
+      topic: "Dynamic Programming",
+      difficulty: "Hard",
+      hint: "This is the classic Subset Sum problem. Use a boolean 2D array.",
+      markingScheme: "5 marks for state definition, 10 marks for implementation logic."
+    },
+    {
+      id: 3,
+      text: "Perform a BFS traversal on a graph with 6 nodes and identify the shortest path from node A to node F.",
+      marks: 12,
+      topic: "Graph Algorithms",
+      difficulty: "Medium",
+      hint: "Use a queue for BFS and keep track of visited nodes.",
+      markingScheme: "4 marks for traversal steps, 8 marks for correct path."
+    }
   ];
 
   const filteredQuestions = topic === "All Topics" 
@@ -51,14 +68,20 @@ export default function PracticePage() {
     const targetTopic = overrideTopic || topic;
     setLoading(true);
     
-    // Simulate API call to generate questions for the target topic
+    // Simulate AI generation logic
     setTimeout(() => {
       setLoading(false);
-      if (analysisData) {
-        // If we have real data, we just filter or "regenerate" from existing context
-        setTopic(targetTopic);
-      }
-    }, 1500);
+      setTopic(targetTopic);
+      // In a real app, this would fetch from /api/generate-practice?topic=...
+    }, 1200);
+  };
+
+  const speak = (text: string) => {
+    if (typeof window !== "undefined") {
+      const synth = window.speechSynthesis;
+      const utterance = new SpeechSynthesisUtterance(text);
+      synth.speak(utterance);
+    }
   };
 
   return (
@@ -131,9 +154,20 @@ export default function PracticePage() {
                           <p className="text-lg font-medium leading-relaxed">{q.text}</p>
                        </div>
                     </div>
-                    <div className="text-right shrink-0">
-                       <p className="text-xl font-bold">{q.marks}</p>
-                       <p className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Marks</p>
+                    <div className="flex flex-col items-end gap-2">
+                       <button 
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           speak(q.text);
+                         }}
+                         className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all"
+                       >
+                          <Volume2 className="h-4 w-4" />
+                       </button>
+                       <div className="text-right shrink-0">
+                          <p className="text-xl font-bold">{q.marks}</p>
+                          <p className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Marks</p>
+                       </div>
                     </div>
                  </div>
 
@@ -147,16 +181,38 @@ export default function PracticePage() {
                      >
                        <div className="mt-6 pt-6 border-t border-white/10 grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10">
-                             <div className="flex items-center gap-2 mb-2 text-amber-500">
-                                <Lightbulb className="h-4 w-4" />
-                                <span className="text-xs font-bold uppercase tracking-widest">Hint</span>
+                             <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2 text-amber-500">
+                                   <Lightbulb className="h-4 w-4" />
+                                   <span className="text-xs font-bold uppercase tracking-widest">Hint</span>
+                                </div>
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    speak(q.hint);
+                                  }}
+                                  className="text-[10px] font-bold text-amber-500 hover:text-amber-400 flex items-center gap-1"
+                                >
+                                   <Volume2 className="h-3 w-3" /> Speak
+                                </button>
                              </div>
                              <p className="text-sm text-slate-400 italic">{q.hint}</p>
                           </div>
                           <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10">
-                             <div className="flex items-center gap-2 mb-2 text-blue-500">
-                                <CheckCircle2 className="h-4 w-4" />
-                                <span className="text-xs font-bold uppercase tracking-widest">Marking Scheme</span>
+                             <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2 text-blue-500">
+                                   <CheckCircle2 className="h-4 w-4" />
+                                   <span className="text-xs font-bold uppercase tracking-widest">Marking Scheme</span>
+                                </div>
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    speak(q.markingScheme);
+                                  }}
+                                  className="text-[10px] font-bold text-blue-500 hover:text-blue-400 flex items-center gap-1"
+                                >
+                                   <Volume2 className="h-3 w-3" /> Speak
+                                </button>
                              </div>
                              <p className="text-sm text-slate-400">{q.markingScheme}</p>
                           </div>

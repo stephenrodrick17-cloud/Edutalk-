@@ -70,7 +70,7 @@ export default function ChatTeacher() {
 
     try {
       const response = await apiClient.post("/chat", { 
-        message: `${userMessage} (Please respond in ${LANGUAGES.find(l => l.code === selectedLang)?.name})`, 
+        message: `[Language: ${LANGUAGES.find(l => l.code === selectedLang)?.name}] ${userMessage}`, 
         history: messages.map(m => ({ role: m.role, content: m.content })) 
       });
       
@@ -80,8 +80,10 @@ export default function ChatTeacher() {
         content: assistantMessage 
       }]);
       setIsLoading(false);
-      // Auto-speak the response
-      speak(assistantMessage);
+      // Auto-speak the response if not minimized
+      if (!isMinimized) {
+        speak(assistantMessage);
+      }
     } catch (error) {
       console.error("Chat error:", error);
       setMessages(prev => [...prev, { 

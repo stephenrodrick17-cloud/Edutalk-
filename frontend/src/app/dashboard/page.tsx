@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { TrendingUp, Users, BookOpen, AlertCircle, Calendar, CheckCircle2, BrainCircuit, BarChart3, PieChart, Info } from "lucide-react";
+import { TrendingUp, Users, BookOpen, AlertCircle, Calendar, CheckCircle2, BrainCircuit, BarChart3, PieChart, Info, Volume2 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from "recharts";
 import { cn } from "@/lib/utils";
 
@@ -10,6 +10,12 @@ import Link from "next/link";
 
 const QuestionCard = ({ q, i }: { q: any, i: number }) => {
   const [isOpen, setIsOpen] = useState(false);
+
+  const speak = (text: string) => {
+    const synth = window.speechSynthesis;
+    const utterance = new SynthesisUtterance(text);
+    synth.speak(utterance);
+  };
 
   return (
     <motion.div 
@@ -31,12 +37,23 @@ const QuestionCard = ({ q, i }: { q: any, i: number }) => {
             )}>{q.marks} Marks</span>
           </div>
         </div>
-        <motion.div
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          className="text-slate-500 group-hover:text-white"
-        >
-          <TrendingUp className="h-4 w-4" />
-        </motion.div>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              speak(q.solution || q.text);
+            }}
+            className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all"
+          >
+            <Volume2 className="h-4 w-4" />
+          </button>
+          <motion.div
+            animate={{ rotate: isOpen ? 180 : 0 }}
+            className="text-slate-500 group-hover:text-white"
+          >
+            <TrendingUp className="h-4 w-4" />
+          </motion.div>
+        </div>
       </div>
       
       <AnimatePresence>
@@ -49,7 +66,18 @@ const QuestionCard = ({ q, i }: { q: any, i: number }) => {
           >
             <div className="mt-4 pt-4 border-t border-white/5 space-y-3">
               <div className="p-3 rounded-xl bg-blue-600/5 border border-blue-600/10">
-                <p className="text-[10px] uppercase font-bold text-blue-400 mb-1 tracking-widest">AI Solution</p>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[10px] uppercase font-bold text-blue-400 tracking-widest">AI Solution</p>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      speak(q.solution);
+                    }}
+                    className="flex items-center gap-1 text-[10px] font-bold text-blue-400 hover:text-blue-300"
+                  >
+                    <Volume2 className="h-3 w-3" /> Read Aloud
+                  </button>
+                </div>
                 <p className="text-xs text-slate-300 leading-relaxed whitespace-pre-wrap">{q.solution || "Solution analysis in progress..."}</p>
               </div>
             </div>

@@ -96,7 +96,7 @@ export default function Home() {
             {[
               {
                 title: "Neural Paper Parsing",
-                img: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=800",
+                img: "https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&q=80&w=800",
                 desc: "OCR extracts complex engineering notation with 99% accuracy.",
                 rotate: "-rotate-2"
               },
@@ -110,7 +110,7 @@ export default function Home() {
               },
               {
                 title: "Predictive Synthesis",
-                img: "https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&q=80&w=800",
+                img: "https://images.unsplash.com/photo-1454165205744-3b78555e5572?auto=format&fit=crop&q=80&w=800",
                 desc: "AI models forecasting high-yield topics for 2026.",
                 rotate: "rotate-2"
               }
@@ -167,7 +167,7 @@ export default function Home() {
               icon: BrainCircuit,
               title: "Technical Extraction",
               desc: "Upload complex engineering diagrams or papers. Our OCR extracts formulas, units, and technical concepts.",
-              img: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800"
+              img: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800"
             },
             {
               icon: BarChart3,
@@ -179,7 +179,7 @@ export default function Home() {
               icon: Calendar,
               title: "Adaptive Planning",
               desc: "Get a study schedule that prioritizes heavy-weight engineering units based on your time constraints.",
-              img: "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?auto=format&fit=crop&q=80&w=800"
+              img: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&q=80&w=800"
             },
             {
               icon: BookOpen,
