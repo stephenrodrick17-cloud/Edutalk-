@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+:root {
+  --background: #020617;
+  --foreground: #f8fafc;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer utilities {
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  
+  .glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+  }
+  
+  .signal-bg {
+    background-color: #020617;
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.8), #020617),
+      url('https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&q=80&w=2072');
+    background-size: 60px 60px, 60px 60px, cover, cover;
+    background-attachment: fixed;
+    background-blend-mode: overlay, overlay, normal, luminosity;
+    position: relative;
+  }
+
+  .signal-bg::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
+    opacity: 0.1;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .signal-bg::after {
+    content: "EXPERIMENTAL DESIGN // 15.08.2025";
+    position: fixed;
+    bottom: 2rem;
+    left: 2rem;
+    font-family: monospace;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.2);
+    letter-spacing: 0.5rem;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    pointer-events: none;
+  }
+
+  .shattered-text {
+    text-shadow: 
+      2px 0 #ff004c, 
+      -2px 0 #00d4ff;
+    animation: glitch 2s infinite linear alternate-reverse;
+  }
+
+  @keyframes glitch {
+    0% { transform: translate(0); }
+    20% { transform: translate(-2px, 2px); }
+    40% { transform: translate(-2px, -2px); }
+    60% { transform: translate(2px, 2px); }
+    80% { transform: translate(2px, -2px); }
+    100% { transform: translate(0); }
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+.text-gradient {
+  @apply bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent;
+}

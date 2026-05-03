@@ -1,0 +1,31 @@
+# Environment variables
+.env
+backend/.env
+frontend/.env
+client/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+ENV/
+examintel.db
+
+# Node.js
+node_modules/
+.next/
+dist/
+build/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Uploads
+uploads/*
+!uploads/.gitkeep
