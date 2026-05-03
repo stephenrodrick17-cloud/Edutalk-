@@ -60,6 +60,9 @@ npm install
 npm run dev
 ```
 
+##link for video
+https://drive.google.com/file/d/17n2aZoASD_qtMX5q7mk7KFx3YAy35hd7/view?usp=sharing
+
 ## 📂 Project Structure
 
 - `frontend/`: Next.js application.
