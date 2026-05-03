@@ -28,16 +28,22 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="relative flex w-full max-w-7xl flex-col items-center px-6 pt-32 pb-20 text-center md:pt-48 md:pb-32">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full -z-20 opacity-30 pointer-events-none">
-           <div className="absolute inset-0 bg-gradient-to-b from-blue-600/10 via-transparent to-transparent" />
-           <div className="w-full h-full bg-[url('https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&q=80&w=2070')] bg-cover bg-center mix-blend-overlay opacity-40" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[120%] -z-20 pointer-events-none overflow-hidden">
+           <motion.div 
+             initial={{ scale: 1.2, opacity: 0 }}
+             animate={{ scale: 1, opacity: 0.6 }}
+             transition={{ duration: 1.5, ease: "easeOut" }}
+             className="absolute inset-0 bg-[url('https://mir-s3-cdn-cf.behance.net/project_modules/fs/44627d20626351.562ee59817926.jpg')] bg-cover bg-center"
+           />
+           <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-950/40 to-slate-950" />
+           <div className="absolute inset-0 bg-blue-600/10 mix-blend-overlay" />
         </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-1.5 text-sm font-medium text-blue-400 mb-8"
+          className="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-1.5 text-sm font-medium text-blue-400 mb-12 backdrop-blur-md"
         >
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75"></span>
@@ -49,38 +55,43 @@ export default function Home() {
         <motion.div
            initial={{ opacity: 0, scale: 0.9 }}
            animate={{ opacity: 1, scale: 1 }}
-           transition={{ duration: 0.8 }}
-           className="relative mb-8"
+           transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+           className="relative mb-12"
          >
-           <h1 className="text-7xl font-black tracking-tighter md:text-9xl uppercase leading-none text-white mix-blend-difference">
+           <h1 className="text-8xl font-black tracking-[calc(-0.05em)] md:text-[12rem] uppercase leading-[0.8] text-white mix-blend-difference drop-shadow-[0_0_30px_rgba(59,130,246,0.5)]">
              Evolve
            </h1>
-           <div className="absolute -top-4 -right-4 h-24 w-24 rounded-full border border-blue-500/30 animate-pulse" />
-           <div className="absolute -bottom-8 -left-8 h-32 w-32 rounded-full border border-blue-500/20" />
+           <motion.div 
+             animate={{ opacity: [0.3, 0.6, 0.3] }}
+             transition={{ duration: 4, repeat: Infinity }}
+             className="absolute -top-8 -right-8 h-32 w-32 rounded-full border border-blue-500/20 blur-2xl" 
+           />
+           <div className="absolute -bottom-12 -left-12 h-48 w-48 rounded-full border border-blue-600/10 blur-3xl" />
          </motion.div>
 
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="mt-4 max-w-2xl text-sm font-mono text-slate-500 md:text-base tracking-widest uppercase"
+          className="mt-4 max-w-2xl text-sm font-mono text-slate-400 md:text-base tracking-[0.3em] uppercase leading-relaxed"
         >
           from shattered fragments to technical mastery <br/>
           leveraging neural networks to decode <br/>
-          <span className="text-blue-500">the future of your engineering finals</span>
+          <span className="text-blue-500 font-bold">the future of engineering</span>
         </motion.p>
         
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="mt-12 flex flex-col gap-4 sm:flex-row"
+          className="mt-16 flex flex-col gap-6 sm:flex-row"
         >
-          <Link href="/dashboard" className="group flex h-14 items-center gap-2 rounded-xl border border-white bg-white px-8 text-sm font-bold uppercase tracking-widest text-black transition-all hover:bg-transparent hover:text-white">
-            Access System
-            <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+          <Link href="/dashboard" className="group relative flex h-16 items-center gap-3 overflow-hidden rounded-2xl bg-white px-10 text-sm font-black uppercase tracking-widest text-black transition-all hover:scale-105 active:scale-95">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-100 to-white opacity-0 group-hover:opacity-100 transition-opacity" />
+            <span className="relative z-10">Access System</span>
+            <ArrowRight className="relative z-10 h-5 w-5 transition-transform group-hover:translate-x-2" />
           </Link>
-          <Link href="/dashboard/upload" className="flex h-14 items-center rounded-xl border border-white/20 bg-transparent px-8 text-sm font-bold uppercase tracking-widest transition-all hover:bg-white/5">
+          <Link href="/dashboard/upload" className="group flex h-16 items-center rounded-2xl border border-white/20 bg-white/5 px-10 text-sm font-black uppercase tracking-widest text-white backdrop-blur-xl transition-all hover:bg-white/10 hover:border-white/40">
             Analyze Paper
           </Link>
         </motion.div>
