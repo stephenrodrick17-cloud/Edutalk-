@@ -96,13 +96,13 @@ export default function Home() {
             {[
               {
                 title: "Neural Paper Parsing",
-                img: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&q=80&w=800",
+                img: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=800",
                 desc: "OCR extracts complex engineering notation with 99% accuracy.",
                 rotate: "-rotate-2"
               },
               {
                 title: "3D Concept Mapping",
-                img: "https://images.unsplash.com/photo-1633167606207-d840b5070fc2?auto=format&fit=crop&q=80&w=800",
+                img: "https://images.unsplash.com/photo-1507413245164-6160d8298b31?auto=format&fit=crop&q=80&w=800",
                 desc: "Visualize syllabus coverage in a spatial knowledge graph.",
                 rotate: "rotate-0",
                 scale: 1.1,
@@ -110,7 +110,7 @@ export default function Home() {
               },
               {
                 title: "Predictive Synthesis",
-                img: "https://images.unsplash.com/photo-1551288049-bbbda536339a?auto=format&fit=crop&q=80&w=800",
+                img: "https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&q=80&w=800",
                 desc: "AI models forecasting high-yield topics for 2026.",
                 rotate: "rotate-2"
               }
@@ -167,25 +167,25 @@ export default function Home() {
               icon: BrainCircuit,
               title: "Technical Extraction",
               desc: "Upload complex engineering diagrams or papers. Our OCR extracts formulas, units, and technical concepts.",
-              img: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800"
+              img: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800"
             },
             {
               icon: BarChart3,
               title: "Trend Analytics",
               desc: "Identify shifts in engineering exam patterns across multiple years and various universities.",
-              img: "https://images.unsplash.com/photo-1551288049-bbbda536339a?auto=format&fit=crop&q=80&w=800"
+              img: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800"
             },
             {
               icon: Calendar,
               title: "Adaptive Planning",
               desc: "Get a study schedule that prioritizes heavy-weight engineering units based on your time constraints.",
-              img: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&q=80&w=800"
+              img: "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?auto=format&fit=crop&q=80&w=800"
             },
             {
               icon: BookOpen,
               title: "Engineering Mentor",
               desc: "Chat with Professor Intel, our AI teacher trained to explain engineering formulas and concepts.",
-              img: "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=800"
+              img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=800"
             }
           ].map((feature, i) => (
             <motion.div

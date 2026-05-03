@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, X, Send, User, BrainCircuit, Loader2, Minus, Maximize2 } from "lucide-react";
+import { MessageSquare, X, Send, User, BrainCircuit, Loader2, Minus, Maximize2, Mic, Volume2, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import apiClient from "@/lib/api";
 
@@ -10,6 +10,13 @@ interface Message {
   role: "user" | "assistant";
   content: string;
 }
+
+const LANGUAGES = [
+  { code: "en-US", name: "English" },
+  { code: "hi-IN", name: "Hindi" },
+  { code: "es-ES", name: "Spanish" },
+  { code: "fr-FR", name: "French" },
+];
 
 export default function ChatTeacher() {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,13 +26,39 @@ export default function ChatTeacher() {
     { role: "assistant", content: "Hello! I am Professor Intel, your AI Engineering Mentor. How can I help you with your studies today?" }
   ]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [selectedLang, setSelectedLang] = useState("en-US");
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  // Speech Recognition Setup
+  const startListening = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Your browser does not support speech recognition.");
+      return;
     }
-  }, [messages]);
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = selectedLang;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setMessage(transcript);
+    };
+
+    recognition.start();
+  };
+
+  // Text to Speech
+  const speak = (text: string) => {
+    const synth = window.speechSynthesis;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = selectedLang;
+    synth.speak(utterance);
+  };
 
   const handleSend = async () => {
     if (!message.trim() || isLoading) return;
@@ -37,15 +70,18 @@ export default function ChatTeacher() {
 
     try {
       const response = await apiClient.post("/chat", { 
-        message: userMessage, 
+        message: `${userMessage} (Please respond in ${LANGUAGES.find(l => l.code === selectedLang)?.name})`, 
         history: messages.map(m => ({ role: m.role, content: m.content })) 
       });
       
+      const assistantMessage = response.data.response;
       setMessages(prev => [...prev, { 
         role: "assistant", 
-        content: response.data.response 
+        content: assistantMessage 
       }]);
       setIsLoading(false);
+      // Auto-speak the response
+      speak(assistantMessage);
     } catch (error) {
       console.error("Chat error:", error);
       setMessages(prev => [...prev, { 
@@ -140,7 +176,28 @@ export default function ChatTeacher() {
 
                 {/* Input */}
                 <div className="border-t border-white/5 p-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Globe className="h-4 w-4 text-slate-500" />
+                    <select 
+                      value={selectedLang}
+                      onChange={(e) => setSelectedLang(e.target.value)}
+                      className="bg-transparent text-[10px] uppercase font-bold tracking-widest text-slate-400 outline-none cursor-pointer"
+                    >
+                      {LANGUAGES.map(l => (
+                        <option key={l.code} value={l.code} className="bg-slate-900">{l.name}</option>
+                      ))}
+                    </select>
+                  </div>
                   <div className="flex gap-2 bg-white/5 rounded-2xl p-2 border border-white/10 focus-within:border-blue-500/50 transition-all">
+                    <button
+                      onClick={startListening}
+                      className={cn(
+                        "flex h-10 w-10 items-center justify-center rounded-xl transition-all",
+                        isListening ? "bg-rose-500 text-white animate-pulse" : "bg-white/5 text-slate-400 hover:text-white"
+                      )}
+                    >
+                      <Mic className="h-4 w-4" />
+                    </button>
                     <input
                       type="text"
                       value={message}
@@ -157,7 +214,7 @@ export default function ChatTeacher() {
                       <Send className="h-4 w-4" />
                     </button>
                   </div>
-                  <p className="mt-2 text-[10px] text-center text-slate-500 italic">Focused on Engineering Excellence</p>
+                  <p className="mt-2 text-[10px] text-center text-slate-500 italic">Multilingual Speech Integration Active</p>
                 </div>
               </>
             )}

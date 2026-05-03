@@ -47,11 +47,18 @@ export default function PracticePage() {
     ? ["All Topics", ...Array.from(new Set(analysisData.questions.map((q: any) => q.topic)))]
     : ["All Topics", "Asymptotic Analysis", "Dynamic Programming", "Graph Algorithms"];
 
-  const generateNew = () => {
+  const generateNew = (overrideTopic?: string) => {
+    const targetTopic = overrideTopic || topic;
     setLoading(true);
+    
+    // Simulate API call to generate questions for the target topic
     setTimeout(() => {
       setLoading(false);
-    }, 2000);
+      if (analysisData) {
+        // If we have real data, we just filter or "regenerate" from existing context
+        setTopic(targetTopic);
+      }
+    }, 1500);
   };
 
   return (
@@ -76,7 +83,7 @@ export default function PracticePage() {
               ))}
            </select>
            <button 
-             onClick={generateNew}
+             onClick={() => generateNew()}
              disabled={loading}
              className="flex items-center gap-2 px-6 py-2 rounded-xl bg-blue-600 text-sm font-bold hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50"
            >
@@ -158,8 +165,7 @@ export default function PracticePage() {
                           <button 
                             onClick={(e) => {
                               e.stopPropagation();
-                              setTopic(q.topic);
-                              generateNew();
+                              generateNew(q.topic);
                             }}
                             className="text-sm font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors"
                           >
@@ -181,10 +187,7 @@ export default function PracticePage() {
               <h3 className="text-xl font-bold mb-2">AI Recommendation</h3>
               <p className="text-sm text-blue-100 mb-6">Based on your recent analysis, you should focus on <b>Dynamic Programming</b> as it has the highest mark potential in the upcoming exam.</p>
               <button 
-                onClick={() => {
-                  setTopic("Dynamic Programming");
-                  generateNew();
-                }}
+                onClick={() => generateNew("Dynamic Programming")}
                 className="w-full py-3 rounded-xl bg-white text-blue-600 font-bold text-sm hover:bg-blue-50 transition-all"
               >
                  Generate DP Set
