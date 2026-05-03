@@ -39,6 +39,7 @@ export default function UploadPage() {
     setProgress(10);
 
     try {
+      let allAnalysis = [];
       for (const file of files) {
         const formData = new FormData();
         formData.append("file", file);
@@ -46,12 +47,21 @@ export default function UploadPage() {
         formData.append("subject", "General Engineering");
         formData.append("year", "2024");
 
-        await apiClient.post("/upload-paper/", formData, {
+        const response = await apiClient.post("/upload-paper/", formData, {
           headers: { "Content-Type": "multipart/form-data" },
           params: { title: file.name, subject: "General Engineering", year: 2024 }
         });
         
+        if (response.data && response.data.analysis) {
+          allAnalysis.push(response.data.analysis);
+        }
+        
         setProgress(prev => Math.min(prev + (100 / files.length), 90));
+      }
+      
+      // Store the analysis in localStorage to simulate real-time update in dashboard
+      if (allAnalysis.length > 0) {
+        localStorage.setItem("latest_analysis", JSON.stringify(allAnalysis[0]));
       }
       
       setProgress(100);

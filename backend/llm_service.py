@@ -1,6 +1,7 @@
 import os
 import json
 import re
+import base64
 from typing import List, Dict, Any
 from openai import AsyncOpenAI
 from dotenv import load_dotenv
@@ -55,7 +56,8 @@ class LLMService:
                     "text": "question text",
                     "marks": 10,
                     "topic": "topic name",
-                    "difficulty": "easy/medium/hard"
+                    "difficulty": "easy/medium/hard",
+                    "solution": "step-by-step solution or answer key"
                 }}
             ],
             "subject": "subject name",
@@ -84,6 +86,63 @@ class LLMService:
             return self._parse_json_response(content)
         except Exception as e:
             print(f"DEBUG: OpenRouter analysis error: {str(e)}")
+            raise e
+
+    async def analyze_paper_image(self, image_path: str) -> Dict[str, Any]:
+        """Analyzes an exam paper image directly using LLM Vision."""
+        try:
+            with open(image_path, "rb") as image_file:
+                base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+            
+            prompt = """
+            Analyze this exam paper image. 
+            Extract the questions, their marks, and the specific topics they cover.
+            Provide a detailed solution for each question.
+            Return the result in valid JSON format.
+            
+            Structure:
+            {
+                "questions": [
+                    {
+                        "text": "question text",
+                        "marks": 10,
+                        "topic": "topic name",
+                        "difficulty": "easy/medium/hard",
+                        "solution": "step-by-step solution or answer key"
+                    }
+                ],
+                "subject": "subject name",
+                "year": 2023
+            }
+            """
+            
+            print(f"DEBUG: Sending request to OpenRouter for IMAGE analysis: {os.path.basename(image_path)}")
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": prompt},
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/png;base64,{base64_image}"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                response_format={ "type": "json_object" }
+            )
+            
+            content = response.choices[0].message.content
+            if not content:
+                raise ValueError("OpenRouter returned an empty response")
+                
+            return self._parse_json_response(content)
+        except Exception as e:
+            print(f"DEBUG: OpenRouter image analysis error: {str(e)}")
             raise e
 
     async def map_to_syllabus(self, questions: List[Dict], syllabus_text: str) -> Dict[str, Any]:

@@ -32,6 +32,7 @@ class OCREngine:
             return text
         except Exception as e:
             print(f"Error in OCR: {e}")
+            # If tesseract fails, we return empty string and hope PDF.co or Gemini Vision works
             return ""
 
     def extract_from_bytes(self, image_bytes: bytes) -> str:
@@ -86,10 +87,8 @@ class OCREngine:
                 print(f"DEBUG: Upload successful. Converting to text...")
                 
                 # Step 3: Convert to text
-                if is_pdf:
-                    convert_endpoint = "https://api.pdf.co/v1/pdf/convert/to/text"
-                else:
-                    convert_endpoint = "https://api.pdf.co/v1/pdf/convert/to/text-from-image"
+                # PDF.co uses the same endpoint for both PDF and Images
+                convert_endpoint = "https://api.pdf.co/v1/pdf/convert/to/text"
                 
                 payload = {
                     "url": file_url,

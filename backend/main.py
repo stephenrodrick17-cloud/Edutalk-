@@ -73,36 +73,44 @@ async def upload_paper(
         print(f"ERROR Step 1: {str(e)}")
         raise HTTPException(status_code=500, detail=f"File save error: {str(e)}")
     
-    # 2. Extract Text
+    # 2. Extract Text & Analyze
+    analysis = None
     try:
-        print(f"2. Starting extraction for {file.filename}")
-        if file.filename.lower().endswith(('.pdf', '.png', '.jpg', '.jpeg')):
-            extracted_text = await ocr.extract_with_pdf_co(file_path)
-        else:
-            # Fallback for other types or raw bytes
-            extracted_text = ocr.extract_from_bytes(content)
+        print(f"2. Starting extraction/analysis for {file.filename}")
         
-        if not extracted_text:
-            print("ERROR Step 2: Extraction returned empty text")
-            raise HTTPException(status_code=400, detail="Could not extract any text from the document. Please ensure it's not a password-protected or corrupt file.")
+        # If it's an image, we can try direct vision analysis first or as a fallback
+        is_image = file.filename.lower().endswith(('.png', '.jpg', '.jpeg'))
+        
+        if is_image:
+            try:
+                # Try PDF.co first for text extraction (as requested)
+                extracted_text = await ocr.extract_with_pdf_co(file_path)
+                if extracted_text:
+                    print("2a. PDF.co text extraction successful. Sending to LLM...")
+                    analysis = await llm.analyze_paper_text(extracted_text)
+            except Exception as e:
+                print(f"2b. PDF.co failed for image, falling back to Gemini Vision: {str(e)}")
             
-        print(f"2. Extraction successful ({len(extracted_text)} chars)")
+            # If PDF.co failed or didn't return text, use Gemini Vision directly
+            if not analysis:
+                print("2c. Starting direct Gemini Vision analysis...")
+                analysis = await llm.analyze_paper_image(file_path)
+        else:
+            # It's a PDF
+            extracted_text = await ocr.extract_with_pdf_co(file_path)
+            if not extracted_text:
+                raise HTTPException(status_code=400, detail="Could not extract text from PDF via PDF.co")
+            
+            print("2d. PDF text extraction successful. Sending to LLM...")
+            analysis = await llm.analyze_paper_text(extracted_text)
+            
+        if not analysis:
+            raise HTTPException(status_code=400, detail="Could not analyze document. AI returned no results.")
+            
+        print(f"3. Analysis successful ({len(analysis.get('questions', []))} questions found)")
     except Exception as e:
-        print(f"ERROR Step 2: {str(e)}")
-        # Provide a more helpful error if it's PDF.co specific
-        error_msg = str(e)
-        if "PDF.co" in error_msg:
-            raise HTTPException(status_code=500, detail=f"PDF.co OCR Service Error: {error_msg}")
-        raise HTTPException(status_code=500, detail=f"Text extraction failed: {error_msg}")
-    
-    # 3. Analyze Text with LLM (Gemini via OpenRouter)
-    try:
-        print("3. Starting AI analysis...")
-        analysis = await llm.analyze_paper_text(extracted_text)
-        print("3. AI analysis complete")
-    except Exception as e:
-        print(f"ERROR Step 3: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"AI Analysis (Gemini) failed: {str(e)}")
+        print(f"ERROR: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
     
     print(f"--- UPLOAD COMPLETE: {file.filename} ---")
     return {

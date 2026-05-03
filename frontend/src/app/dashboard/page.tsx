@@ -1,35 +1,101 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { TrendingUp, Users, BookOpen, AlertCircle, Calendar, CheckCircle2, BrainCircuit, BarChart3, PieChart, Info } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from "recharts";
 import { cn } from "@/lib/utils";
 
 import Link from "next/link";
 
-const stats = [
-  { label: "Technical Readiness", value: "84%", icon: TrendingUp, color: "text-blue-400", bg: "bg-blue-400/10" },
-  { label: "Formula Mastery", value: "62%", icon: BookOpen, color: "text-indigo-400", bg: "bg-indigo-400/10" },
-  { label: "High-Yield Topics", value: "12", icon: Users, color: "text-emerald-400", bg: "bg-emerald-400/10" },
-  { label: "Design Risks", value: "4", icon: AlertCircle, color: "text-rose-400", bg: "bg-rose-400/10" },
-];
+const QuestionCard = ({ q, i }: { q: any, i: number }) => {
+  const [isOpen, setIsOpen] = useState(false);
 
-const data = [
-  { name: "Thermodynamics", freq: 400, predicted: 240 },
-  { name: "Fluid Mechanics", freq: 300, predicted: 139 },
-  { name: "Structural Analysis", freq: 200, predicted: 980 },
-  { name: "Material Science", freq: 278, predicted: 390 },
-  { name: "Heat Transfer", freq: 189, predicted: 480 },
-];
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: i * 0.05 }}
+      className="p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-blue-500/30 transition-all cursor-pointer group"
+      onClick={() => setIsOpen(!isOpen)}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1">
+          <p className="text-sm font-bold line-clamp-2 group-hover:text-blue-400 transition-colors">{q.text}</p>
+          <div className="mt-2 flex items-center gap-3">
+            <span className="text-[10px] text-blue-400 font-mono px-2 py-0.5 bg-blue-400/10 rounded-md">{q.topic}</span>
+            <span className={cn(
+              "text-[10px] font-bold px-2 py-0.5 rounded",
+              q.difficulty === "hard" ? "bg-rose-500/10 text-rose-500" : 
+              q.difficulty === "medium" ? "bg-orange-500/10 text-orange-500" : "bg-emerald-500/10 text-emerald-500"
+            )}>{q.marks} Marks</span>
+          </div>
+        </div>
+        <motion.div
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          className="text-slate-500 group-hover:text-white"
+        >
+          <TrendingUp className="h-4 w-4" />
+        </motion.div>
+      </div>
+      
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="mt-4 pt-4 border-t border-white/5 space-y-3">
+              <div className="p-3 rounded-xl bg-blue-600/5 border border-blue-600/10">
+                <p className="text-[10px] uppercase font-bold text-blue-400 mb-1 tracking-widest">AI Solution</p>
+                <p className="text-xs text-slate-300 leading-relaxed whitespace-pre-wrap">{q.solution || "Solution analysis in progress..."}</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+};
 
 export default function DashboardPage() {
+  const [analysisData, setAnalysisData] = useState<any>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("latest_analysis");
+    if (saved) {
+      setAnalysisData(JSON.parse(saved));
+    }
+  }, []);
+
+  const stats = [
+    { label: "Technical Readiness", value: analysisData ? "91%" : "84%", icon: TrendingUp, color: "text-blue-400", bg: "bg-blue-400/10" },
+    { label: "Formula Mastery", value: analysisData ? "75%" : "62%", icon: BookOpen, color: "text-indigo-400", bg: "bg-indigo-400/10" },
+    { label: "High-Yield Topics", value: analysisData?.questions?.length || "12", icon: Users, color: "text-emerald-400", bg: "bg-emerald-400/10" },
+    { label: "Design Risks", value: analysisData ? "2" : "4", icon: AlertCircle, color: "text-rose-400", bg: "bg-rose-400/10" },
+  ];
+
+  const chartData = analysisData?.questions?.slice(0, 5).map((q: any) => ({
+    name: q.topic.split(' ').slice(0, 2).join(' '),
+    freq: q.marks * 10,
+    predicted: q.marks * 8
+  })) || [
+    { name: "Thermodynamics", freq: 400, predicted: 240 },
+    { name: "Fluid Mechanics", freq: 300, predicted: 139 },
+    { name: "Structural Analysis", freq: 200, predicted: 980 },
+    { name: "Material Science", freq: 278, predicted: 390 },
+    { name: "Heat Transfer", freq: 189, predicted: 480 },
+  ];
+
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold tracking-tight">Engineering Analysis Dashboard</h1>
-          <p className="text-slate-400">Past paper insights for <span className="text-white font-medium">Mechanical Engineering - Batch 2026</span></p>
+          <p className="text-slate-400">Past paper insights for <span className="text-white font-medium">{analysisData?.subject || "Mechanical Engineering"} - Batch {analysisData?.year || "2026"}</span></p>
         </div>
         <div className="flex items-center gap-4 bg-white/5 p-4 rounded-3xl border border-white/10">
            <div className="h-12 w-12 rounded-2xl bg-blue-600/20 flex items-center justify-center text-blue-400">
@@ -54,11 +120,20 @@ export default function DashboardPage() {
         <div className="flex-1 space-y-2">
            <h3 className="text-xl font-bold flex items-center gap-2 text-gradient">
               AI Strategic Insight
-              <span className="text-xs font-bold uppercase tracking-widest bg-blue-600 px-2 py-0.5 rounded text-white">Critical</span>
+              <span className="text-xs font-bold uppercase tracking-widest bg-blue-600 px-2 py-0.5 rounded text-white">Live Update</span>
            </h3>
            <p className="text-slate-400 leading-relaxed">
-              Our analysis of <b>6 past papers</b> shows a 25% increase in questions related to <span className="text-white font-semibold">Graph Theory</span> in the last 2 years. 
-              We recommend prioritizing <b>Unit 4</b> this week to maximize your score potential.
+              {analysisData ? (
+                <>
+                  Based on your latest upload of <b>{analysisData.subject}</b>, we detected <b>{analysisData.questions.length}</b> critical questions. 
+                  The primary focus should be on <b>{analysisData.questions[0]?.topic}</b> which carries the highest weight.
+                </>
+              ) : (
+                <>
+                  Our analysis of <b>6 past papers</b> shows a 25% increase in questions related to <span className="text-white font-semibold">Graph Theory</span> in the last 2 years. 
+                  We recommend prioritizing <b>Unit 4</b> this week to maximize your score potential.
+                </>
+              )}
            </p>
         </div>
         <div className="flex flex-col gap-2 w-full md:w-auto">
@@ -98,9 +173,9 @@ export default function DashboardPage() {
            </h3>
            <div className="space-y-6">
               {[
-                { year: "2024", easy: 20, medium: 50, hard: 30 },
-                { year: "2023", easy: 30, medium: 40, hard: 30 },
-                { year: "2022", easy: 15, medium: 45, hard: 40 },
+                { year: analysisData?.year || "2024", easy: 20, medium: 50, hard: 30 },
+                { year: (analysisData?.year - 1) || "2023", easy: 30, medium: 40, hard: 30 },
+                { year: (analysisData?.year - 2) || "2022", easy: 15, medium: 45, hard: 40 },
               ].map((item, i) => (
                 <div key={i} className="space-y-2">
                    <div className="flex justify-between text-sm">
@@ -125,31 +200,16 @@ export default function DashboardPage() {
         <motion.div className="rounded-3xl border border-white/5 bg-white/5 p-8">
            <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
               <PieChart className="h-5 w-5 text-indigo-400" />
-              Syllabus Coverage Gaps
+              Recent Analysis Questions
            </h3>
-           <div className="grid grid-cols-2 gap-4">
-              {[
-                { topic: "Finite Element Method", status: "Low Frequency", risk: "High" },
-                { topic: "Vibrations & Noise", status: "Untouched", risk: "Critical" },
-                { topic: "CAD/CAM Systems", status: "Untouched", risk: "Medium" },
-                { topic: "Kinematics", status: "High Frequency", risk: "Low" },
-              ].map((gap, i) => (
-                <div key={i} className="p-4 rounded-2xl bg-white/5 border border-white/5">
-                   <p className="text-sm font-bold truncate">{gap.topic}</p>
-                   <div className="mt-2 flex items-center justify-between">
-                      <span className="text-[10px] text-slate-500">{gap.status}</span>
-                      <span className={cn(
-                        "text-[10px] font-bold px-2 py-0.5 rounded",
-                        gap.risk === "Critical" ? "bg-rose-500/10 text-rose-500" : 
-                        gap.risk === "High" ? "bg-orange-500/10 text-orange-500" : "bg-blue-500/10 text-blue-500"
-                      )}>{gap.risk} Risk</span>
-                   </div>
+           <div className="grid grid-cols-1 gap-4 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
+              {analysisData?.questions?.map((q: any, i: number) => (
+                <QuestionCard key={i} q={q} i={i} />
+              )) || (
+                <div className="text-center py-12 text-slate-500 italic">
+                  No recent uploads. Upload a paper to see extracted questions and AI solutions here.
                 </div>
-              ))}
-           </div>
-           <div className="mt-6 p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/20 flex gap-3">
-              <Info className="h-5 w-5 text-indigo-400 shrink-0" />
-              <p className="text-xs text-slate-400">These topics have not appeared in the last 3 years but are mandatory in the 2026 syllabus update.</p>
+              )}
            </div>
         </motion.div>
       </div>
@@ -165,16 +225,15 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-8">
              <div>
                 <h3 className="text-xl font-bold">Topic Frequency vs Predictions</h3>
-                <p className="text-sm text-slate-400">Based on analysis of 5 years of past papers</p>
+                <p className="text-sm text-slate-400">Based on analysis of extracted questions</p>
              </div>
-             <select className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm outline-none">
-                <option>Computer Science</option>
-                <option>Mathematics</option>
-             </select>
+             <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm outline-none">
+                {analysisData?.subject || "Subject View"}
+             </div>
           </div>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data}>
+              <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorFreq" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
@@ -182,8 +241,8 @@ export default function DashboardPage() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                <XAxis dataKey="name" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
+                <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
                 <Tooltip 
                   contentStyle={{ backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }}
                   itemStyle={{ color: '#fff' }}

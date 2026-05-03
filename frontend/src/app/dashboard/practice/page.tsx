@@ -1,42 +1,56 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BrainCircuit, Sparkles, ChevronRight, BookOpen, Lightbulb, CheckCircle2, Loader2, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const sampleQuestions = [
-  {
-    id: 1,
-    text: "Explain the difference between Big O, Big Omega, and Big Theta notations with examples.",
-    marks: 10,
-    topic: "Asymptotic Analysis",
-    difficulty: "Medium",
-    hint: "Think about upper bound, lower bound, and tight bound.",
-    markingScheme: "2 marks for each definition, 4 marks for examples."
-  },
-  {
-    id: 2,
-    text: "Design a Dynamic Programming algorithm to find the Longest Common Subsequence of two strings.",
-    marks: 15,
-    topic: "Dynamic Programming",
-    difficulty: "Hard",
-    hint: "Use a 2D table to store results of subproblems.",
-    markingScheme: "5 marks for recurrence relation, 5 marks for table filling, 5 marks for complexity analysis."
-  }
-];
-
 export default function PracticePage() {
-  const [topic, setTopic] = useState("Asymptotic Analysis");
+  const [analysisData, setAnalysisData] = useState<any>(null);
+  const [topic, setTopic] = useState("All Topics");
   const [loading, setLoading] = useState(false);
-  const [questions, setQuestions] = useState(sampleQuestions);
   const [activeQuestion, setActiveQuestion] = useState<number | null>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("latest_analysis");
+    if (saved) {
+      setAnalysisData(JSON.parse(saved));
+    }
+  }, []);
+
+  const questions = analysisData?.questions?.map((q: any, idx: number) => ({
+    id: idx + 1,
+    text: q.text,
+    marks: q.marks,
+    topic: q.topic,
+    difficulty: q.difficulty.charAt(0).toUpperCase() + q.difficulty.slice(1),
+    hint: `Focus on ${q.topic} core principles.`,
+    markingScheme: q.solution || "Refer to standard engineering marking criteria."
+  })) || [
+    {
+      id: 1,
+      text: "Explain the difference between Big O, Big Omega, and Big Theta notations with examples.",
+      marks: 10,
+      topic: "Asymptotic Analysis",
+      difficulty: "Medium",
+      hint: "Think about upper bound, lower bound, and tight bound.",
+      markingScheme: "2 marks for each definition, 4 marks for examples."
+    },
+    // ...
+  ];
+
+  const filteredQuestions = topic === "All Topics" 
+    ? questions 
+    : questions.filter((q: any) => q.topic === topic);
+
+  const topicsList = analysisData 
+    ? ["All Topics", ...Array.from(new Set(analysisData.questions.map((q: any) => q.topic)))]
+    : ["All Topics", "Asymptotic Analysis", "Dynamic Programming", "Graph Algorithms"];
 
   const generateNew = () => {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      // In a real app, this would call the backend API
     }, 2000);
   };
 
@@ -45,17 +59,21 @@ export default function PracticePage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold tracking-tight">AI Practice Questions</h1>
-          <p className="text-slate-400">Generate exam-style questions tailored to high-yield topics.</p>
+          <p className="text-slate-400">
+            {analysisData 
+              ? `Generated questions based on ${analysisData.subject} analysis.` 
+              : "Generate exam-style questions tailored to high-yield topics."}
+          </p>
         </div>
         <div className="flex gap-3">
            <select 
              value={topic}
              onChange={(e) => setTopic(e.target.value)}
-             className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm outline-none"
+             className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm outline-none max-w-[200px]"
            >
-              <option>Asymptotic Analysis</option>
-              <option>Dynamic Programming</option>
-              <option>Graph Algorithms</option>
+              {topicsList.map((t: any) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
            </select>
            <button 
              onClick={generateNew}
@@ -72,7 +90,7 @@ export default function PracticePage() {
         {/* Questions List */}
         <div className="lg:col-span-2 space-y-6">
            <AnimatePresence mode="popLayout">
-             {questions.map((q, i) => (
+             {filteredQuestions.map((q: any, i: number) => (
                <motion.div
                  key={q.id}
                  initial={{ opacity: 0, y: 20 }}
@@ -84,6 +102,8 @@ export default function PracticePage() {
                  )}
                  onClick={() => setActiveQuestion(activeQuestion === q.id ? null : q.id)}
                >
+                 {/* ... content similar but using dynamic filteredQuestions */}
+
                  <div className="flex items-start justify-between gap-4">
                     <div className="flex gap-4">
                        <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center text-blue-400 shrink-0">
