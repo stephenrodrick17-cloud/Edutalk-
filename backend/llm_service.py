@@ -15,7 +15,10 @@ class LLMService:
         self.gemini_key = os.getenv("GEMINI_API_KEY")
         
         if not self.api_key and not self.gemini_key:
-            raise ValueError("Neither OPENROUTER_API_KEY nor GEMINI_API_KEY is set in environment variables")
+            print("WARNING: Neither OPENROUTER_API_KEY nor GEMINI_API_KEY is set. AI features will be limited.")
+            self.client = None
+            self.gemini_model = None
+            return
             
         self.base_url = "https://openrouter.ai/api/v1"
         self.model = os.getenv("OPENROUTER_MODEL", "google/gemini-2.0-flash-001")

@@ -20,8 +20,8 @@ export default function PlannerPage() {
   const generatedPlan = analysisData?.questions?.slice(0, 5).map((q: any, i: number) => ({
     day: i + 1,
     date: new Date(Date.now() + i * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-    topics: [q.topic],
-    tasks: [`Solve question: ${q.text.substring(0, 40)}...`, `Master concepts of ${q.topic}`],
+    topics: [q.topic || "General Topic"],
+    tasks: [`Solve question: ${q.text?.substring(0, 40) || "Extracted question"}...`, `Master concepts of ${q.topic || "this topic"}`],
     priority: q.marks > 10 ? "Critical" : "High",
     status: i === 0 ? "in-progress" : "pending"
   })) || [

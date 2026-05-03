@@ -13,7 +13,7 @@ const QuestionCard = ({ q, i }: { q: any, i: number }) => {
 
   const speak = (text: string) => {
     const synth = window.speechSynthesis;
-    const utterance = new SynthesisUtterance(text);
+    const utterance = new SpeechSynthesisUtterance(text);
     synth.speak(utterance);
   };
 
@@ -105,11 +105,14 @@ export default function DashboardPage() {
     { label: "Design Risks", value: analysisData ? "2" : "4", icon: AlertCircle, color: "text-rose-400", bg: "bg-rose-400/10" },
   ];
 
-  const chartData = analysisData?.questions?.slice(0, 5).map((q: any) => ({
-    name: q.topic.split(' ').slice(0, 2).join(' '),
-    freq: q.marks * 10,
-    predicted: q.marks * 8
-  })) || [
+  const chartData = analysisData?.questions?.slice(0, 5).map((q: any) => {
+    const marks = Number(q.marks) || 0;
+    return {
+      name: q.topic?.split(' ').slice(0, 2).join(' ') || "Topic",
+      freq: marks * 10,
+      predicted: marks * 8
+    };
+  }) || [
     { name: "Thermodynamics", freq: 400, predicted: 240 },
     { name: "Fluid Mechanics", freq: 300, predicted: 139 },
     { name: "Structural Analysis", freq: 200, predicted: 980 },

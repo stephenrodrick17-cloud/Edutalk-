@@ -22,7 +22,7 @@ export default function PredictionsPage() {
     importance: q.marks > 8 ? "Critical" : "High",
     marksWeight: q.marks,
     trend: q.difficulty === "hard" ? "Increasing" : "Stable",
-    reason: `Based on detected question: "${q.text.substring(0, 50)}..."`
+    reason: `Based on detected question: "${q.text?.substring(0, 50) || "Analysis in progress"}..."`
   })) || [
     { 
       name: "Asymptotic Analysis", 
